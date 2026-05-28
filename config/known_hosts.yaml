@@ -1,0 +1,44 @@
+# ============================================================
+#  known_hosts.yaml — Host noti sulla LAN 192.168.1.0/24
+#  Aggiornato automaticamente con i dati rilevati dalla rete
+# ============================================================
+
+known_hosts:
+  # ── Questo PC ────────────────────────────────────────────────
+  - ip: 192.168.1.134
+    mac: "ac:50:de:7c:5a:37"
+    description: "Questo PC - Wi-Fi (Realtek RTL8822CE)"
+
+  # ── Router/Gateway ───────────────────────────────────────────
+  - ip: 192.168.1.254
+    mac: "38:07:16:1f:f1:7c"
+    description: "Router/Gateway default"
+
+  # ── Altri dispositivi rilevati sulla LAN ─────────────────────
+  # Questi IP erano presenti nella ARP table al momento della configurazione.
+  # Assegna una descrizione e un MAC verificato per ognuno,
+  # oppure rimuovi quelli che non riconosci.
+  - ip: 192.168.1.25
+    mac: "3e:98:38:e0:ba:de"
+    description: "Dispositivo LAN - da identificare"
+
+  - ip: 192.168.1.79
+    mac: "00:e0:4c:38:70:f2"
+    description: "Dispositivo LAN - da identificare"
+
+  - ip: 192.168.1.116
+    mac: "14:49:d4:98:00:af"
+    description: "Dispositivo LAN - da identificare"
+
+  - ip: 192.168.1.189
+    mac: "0c:82:68:e3:b9:be"
+    description: "Dispositivo LAN - da identificare"
+
+  # ── Come aggiungere nuovi host ────────────────────────────────
+  # 1. Trova l'IP del dispositivo (router admin o arp -a)
+  # 2. Ottieni il MAC: arp -a <IP>
+  # 3. Aggiungi la voce e riavvia hermes-ids
+  #
+  # - ip: 192.168.1.x
+  #   mac: "xx:xx:xx:xx:xx:xx"
+  #   description: "Nome dispositivo"

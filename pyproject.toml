@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.backends.legacy:build"
+
+[project]
+name = "hermes-ids"
+version = "0.1.0"
+description = "IDS (Intrusion Detection System) locale integrato con Hermes.Agent"
+requires-python = ">=3.12"
+readme = "README.md"
+license = {text = "MIT"}
+authors = [{name = "Hermes IDS Team"}]
+
+[project.scripts]
+hermes-ids = "src.main:cli_entry"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["src*", "plugins*"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+log_cli = true
+log_cli_level = "DEBUG"
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.mypy]
+python_version = "3.12"
+strict = false
+ignore_missing_imports = true

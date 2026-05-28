@@ -1,0 +1,34 @@
+# ── Secrets / configurazione locale ──────────────────────────
+.env
+
+# ── Dati runtime ─────────────────────────────────────────────
+data/
+logs/
+
+# ── Python ───────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+.eggs/
+.venv/
+venv/
+env/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# ── Docker ───────────────────────────────────────────────────
+docker-compose.override.yml
+
+# ── IDE ──────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo

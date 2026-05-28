@@ -1,0 +1,61 @@
+services:
+
+  # ── Hermes-IDS ─────────────────────────────────────────────────────────────
+  hermes-ids:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: hermes-ids:latest
+    container_name: hermes-ids
+    restart: unless-stopped
+
+    # ── Rete host: obbligatoria per packet capture su interfaccia reale
+    #    e per raggiungere il gateway Hermes su 127.0.0.1:8644
+    network_mode: host
+
+    # ── Capabilities per scapy / libpcap
+    cap_add:
+      - NET_RAW
+      - NET_ADMIN
+
+    # ── Variabili d'ambiente (definite in .env)
+    environment:
+      CAPTURE_INTERFACE:      ${CAPTURE_INTERFACE:-eth0}
+      HERMES_GATEWAY_URL:     ${HERMES_GATEWAY_URL:-http://127.0.0.1:8644}
+      HERMES_EVENTS_SECRET:   ${HERMES_EVENTS_SECRET:-}
+      HERMES_REPORT_SECRET:   ${HERMES_REPORT_SECRET:-}
+      HERMES_REPORT_INTERVAL: ${HERMES_REPORT_INTERVAL:-600}
+      LOG_LEVEL:              ${LOG_LEVEL:-INFO}
+
+    env_file:
+      - path: .env
+        required: false
+
+    # ── Volumi persistenti
+    volumes:
+      - ./config:/app/config      # config.yaml  +  known_hosts.yaml
+      - ./data:/app/data          # dati persistenti
+      - ./logs:/app/logs          # log file (opzionale)
+
+    labels:
+      - "com.hermes-ids.version=0.1.0"
+
+  # ── Prometheus (opzionale, avvia con: docker compose --profile monitoring up) ──
+  prometheus:
+    image: prom/prometheus:v2.52.0
+    container_name: hermes-ids-prometheus
+    restart: unless-stopped
+    profiles: ["monitoring"]
+    network_mode: host
+    volumes:
+      - ./docker/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--storage.tsdb.retention.time=7d"
+    depends_on:
+      - hermes-ids
+
+volumes:
+  prometheus_data:

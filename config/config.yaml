@@ -1,0 +1,106 @@
+# ============================================================
+#  hermes-ids — Configurazione
+#  I valori ${VAR:-default} vengono sostituiti dalle env var
+#  (vedi .env.example per la lista completa)
+# ============================================================
+
+service:
+  name: hermes-ids
+  version: "0.1.0"
+  log_level: "${LOG_LEVEL:-INFO}"
+  log_format: console              # console | json
+
+# ── Interfaccia di rete ──────────────────────────────────────
+capture:
+  interface: "${CAPTURE_INTERFACE:-eth0}"
+  promiscuous: true
+  bpf_filter: ""
+  arp_poll_interval: 30
+
+# ── Coda interna eventi ──────────────────────────────────────
+queue:
+  max_size: 10000
+  drain_interval: 0.1
+
+# ── Rate limiter ─────────────────────────────────────────────
+rate_limiter:
+  enabled: true
+  max_events_per_second: 50
+  burst_size: 100
+
+# ── Detectors ────────────────────────────────────────────────
+detectors:
+  port_scan:
+    enabled: true
+    window_seconds: 10
+    min_ports: 10
+    severity: high
+
+  new_host:
+    enabled: true
+    known_hosts_file: "config/known_hosts.yaml"
+    severity: medium
+
+  traffic_volume:
+    enabled: true
+    window_seconds: 60
+    threshold_pps: 5000
+    threshold_bps: 10000000
+    severity: medium
+
+  sensitive_ports:
+    enabled: true
+    ports: [22, 23, 3389, 5900, 445, 135, 139, 1433, 3306, 5432]
+    window_seconds: 60
+    min_attempts: 5
+    severity: high
+
+  arp_spoof:
+    enabled: true
+    window_seconds: 10
+    severity: critical
+
+# ── Plugin detectors ─────────────────────────────────────────
+plugins:
+  enabled: true
+  directory: "plugins"
+
+# ── Hermes Gateway ───────────────────────────────────────────
+hermes:
+  enabled: true
+  adapter: "webhook"
+  base_url: "${HERMES_GATEWAY_URL:-http://127.0.0.1:8644}"
+  publish_path: "/webhooks/ids-events"
+  api_key: "${HERMES_EVENTS_SECRET}"
+  timeout_seconds: 10
+  retry:
+    max_attempts: 3
+    min_wait_seconds: 1
+    max_wait_seconds: 10
+    multiplier: 2.0
+  reconnect:
+    enabled: true
+    interval_seconds: 15
+
+  # ── Report periodico Telegram (bypass LLM) ────────────────
+  report:
+    enabled: true
+    webhook_path: "/webhooks/ids-report"
+    secret: "${HERMES_REPORT_SECRET}"
+    interval_seconds: ${HERMES_REPORT_INTERVAL:-600}
+    max_events: 15
+    startup_delay_seconds: 60
+
+# ── API REST locale ──────────────────────────────────────────
+api:
+  host: "0.0.0.0"
+  port: 8765
+  workers: 1
+  cors_origins: ["*"]
+  events_history_size: 1000
+
+# ── Prometheus metrics ───────────────────────────────────────
+metrics:
+  enabled: true
+  path: "/metrics"
+  port: 9090
