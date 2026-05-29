@@ -210,9 +210,18 @@ if (-not (Test-Path $knownHostsFile)) {
 Write-Step 7 "Build immagine Docker hermes-ids"
 Write-Host "  (potrebbe richiedere qualche minuto alla prima esecuzione...)"
 
+# Su Windows usiamo l'override che sostituisce host networking con bridge + port mapping
+$overrideFile = Join-Path $ScriptDir "docker-compose.windows.yml"
+$composeArgs = if (Test-Path $overrideFile) {
+    @("-f", "docker-compose.yml", "-f", "docker-compose.windows.yml")
+} else {
+    @()
+}
+Write-Ok "Networking: bridge (Windows) con port mapping 8765->8765"
+
 Push-Location $ScriptDir
 try {
-    & docker compose build --no-cache
+    & docker compose @composeArgs build --no-cache
     if ($LASTEXITCODE -ne 0) { Write-Err "Build Docker fallita" }
     Write-Ok "Immagine Docker costruita"
 } finally {
@@ -226,7 +235,7 @@ Write-Step 8 "Avvio hermes-ids"
 
 Push-Location $ScriptDir
 try {
-    & docker compose up -d
+    & docker compose @composeArgs up -d
     if ($LASTEXITCODE -ne 0) { Write-Err "Avvio Docker fallito" }
     Write-Ok "Container hermes-ids avviato"
 } finally {

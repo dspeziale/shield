@@ -1,0 +1,23 @@
+# docker-compose.windows.yml - Override per Windows (Docker Desktop)
+#
+# Su Windows network_mode: host non funziona (Docker gira in una VM).
+# Questo file usa bridge networking con port mapping esplicito.
+#
+# Uso:
+#   docker compose -f docker-compose.yml -f docker-compose.windows.yml up -d
+#
+# Su Linux usa solo docker-compose.yml (network_mode: host nativo).
+
+services:
+  hermes-ids:
+    network_mode: bridge
+    ports:
+      - "8765:8765"   # REST API  -> localhost:8765 su Windows
+      - "9090:9090"   # Prometheus metrics
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      # Dentro il container con bridge networking l'interfaccia e' eth0
+      CAPTURE_INTERFACE: "eth0"
+      # Raggiunge il gateway Hermes sul PC Windows tramite host.docker.internal
+      HERMES_GATEWAY_URL: "http://host.docker.internal:8644"

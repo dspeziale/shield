@@ -1,44 +1,47 @@
 @echo off
-:: ============================================================
-::  avvia-hermes-ids.bat
-::  Avvia hermes-ids con cattura reale (Wi-Fi, Npcap).
-::  Se non sei Admin, richiede automaticamente elevazione UAC.
-::  Doppio clic → accetta UAC → il servizio parte in una finestra.
-:: ============================================================
+REM ============================================================
+REM  avvia-hermes-ids.bat
+REM  Avvia hermes-ids in Docker (Windows - bridge networking).
+REM  Doppio clic per avviare, oppure da terminale.
+REM ============================================================
 
-:: ── Auto-elevazione UAC ──────────────────────────────────────
-net session >nul 2>&1
-if %ERRORLEVEL% NEQ 0 (
-    echo Richiesta elevazione amministrativa...
-    powershell -Command "Start-Process -FilePath '%~f0' -Verb RunAs"
-    exit /b
-)
-
-:: ── Da qui: siamo Admin ──────────────────────────────────────
-title hermes-ids [Wi-Fi - Reale]
-cd /d "C:\Users\marco.bellomo\Desktop\JobArea\Codice\Ranger\hermes"
+title hermes-ids [Docker - Windows]
+cd /d "%~dp0"
 
 echo.
 echo  ============================================
-echo   Hermes-IDS v0.1.0  ^|  Modalita': REALE
-echo   Interfaccia: Wi-Fi  ^|  IP: 192.168.1.134
+echo   Hermes-IDS v0.1.0  ^|  Docker su Windows
 echo   API: http://localhost:8765
 echo  ============================================
 echo.
 
-:: Verifica porta libera
-for /f "tokens=5" %%a in ('netstat -ano ^| findstr "0.0.0.0:8765"') do (
-    echo [WARN] Porta 8765 gia' occupata dal processo %%a
-    echo Chiudi il processo e riprova, oppure premi un tasto per continuare...
-    pause >nul
+REM Usa l'override Windows (bridge networking + port mapping)
+docker compose -f docker-compose.yml -f docker-compose.windows.yml up -d
+
+if %errorlevel% neq 0 (
+    echo.
+    echo [ERRORE] Avvio fallito. Verifica che Docker Desktop sia in esecuzione.
+    pause
+    exit /b 1
 )
 
-echo Avvio cattura pacchetti su Wi-Fi...
-echo Premi CTRL+C per fermare il servizio.
 echo.
+echo [OK] hermes-ids avviato!
+echo.
+echo Attendo startup (15s)...
+timeout /t 15 /nobreak >nul
 
-python -m src.main --config config/config.yaml
+curl -sf http://localhost:8765/health | findstr /C:"status" >nul 2>&1
+if %errorlevel% equ 0 (
+    echo [OK] API raggiungibile: http://localhost:8765
+) else (
+    echo [!!] API non ancora risponde - attendi qualche secondo.
+    echo      Verifica: docker logs hermes-ids --tail 30
+)
 
 echo.
-echo Servizio terminato.
+echo Comandi utili:
+echo   docker compose -f docker-compose.yml -f docker-compose.windows.yml logs -f
+echo   docker compose -f docker-compose.yml -f docker-compose.windows.yml down
+echo.
 pause
